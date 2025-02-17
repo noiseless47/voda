@@ -9,14 +9,17 @@ const LayoutContainer = styled.div`
   flex-direction: column;
 `;
 
-const Header = styled.div`
-  padding: 16px 24px;
+const Header = styled.header`
   background: rgba(0, 0, 0, 0.3);
   backdrop-filter: blur(10px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 16px 32px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   position: sticky;
   top: 0;
   z-index: 100;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 
   @media (max-width: 768px) {
     padding: 12px 16px;
@@ -71,16 +74,6 @@ interface LayoutProps {
 const TimeRangeControls = styled.div`
   display: flex;
   gap: 8px;
-  
-  @media (max-width: 768px) {
-    overflow-x: auto;
-    padding-bottom: 8px;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-    &::-webkit-scrollbar {
-      display: none;
-    }
-  }
 `;
 
 const TimeRangeButton = styled.button<{ $active: boolean }>`
@@ -118,26 +111,25 @@ const SignOutButton = styled.button`
 const HeaderContent = styled.div`
   display: flex;
   align-items: center;
-  gap: 24px;
+  gap: 32px;
+  flex: 1;
+  margin: 0 32px;
 
   @media (max-width: 768px) {
     flex-direction: column;
-    align-items: stretch;
-    gap: 12px;
+    align-items: flex-start;
+    gap: 16px;
+    margin: 16px 0;
   }
 `;
 
 const TabsContainer = styled.div`
   display: flex;
   gap: 8px;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
-  &::-webkit-scrollbar {
-    display: none;
-  }
-
+  
   @media (max-width: 768px) {
+    width: 100%;
+    overflow-x: auto;
     padding-bottom: 8px;
   }
 `;
@@ -145,17 +137,16 @@ const TabsContainer = styled.div`
 const Tab = styled.button<{ $active: boolean }>`
   padding: 8px 16px;
   border-radius: 20px;
-  background: ${props => props.$active ? 'rgba(255, 255, 255, 0.1)' : 'transparent'};
-  color: ${props => props.$active ? '#fff' : '#b3b3b3'};
+  background: ${props => props.$active ? '#1ed760' : 'rgba(255, 255, 255, 0.1)'};
+  color: ${props => props.$active ? 'black' : 'white'};
   border: none;
   cursor: pointer;
   white-space: nowrap;
-  transition: all 0.2s ease;
   font-size: 14px;
+  transition: all 0.2s ease;
 
   &:hover {
-    color: white;
-    background: rgba(255, 255, 255, 0.1);
+    background: ${props => props.$active ? '#1ed760' : 'rgba(255, 255, 255, 0.15)'};
   }
 `;
 
@@ -166,10 +157,9 @@ const Controls = styled.div`
   margin-left: auto;
 
   @media (max-width: 768px) {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 8px;
     width: 100%;
+    overflow-x: auto;
+    padding-bottom: 8px;
   }
 `;
 

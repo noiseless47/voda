@@ -7,16 +7,7 @@ const ProfileContainer = styled.div`
   display: flex;
   gap: 24px;
   align-items: center;
-  padding: 24px;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 16px;
-
-  @media (max-width: 768px) {
-    flex-direction: column;
-    text-align: center;
-    padding: 16px;
-    gap: 16px;
-  }
+  padding-right: 24px;
 `;
 
 const ProfileImage = styled.img`
@@ -24,11 +15,6 @@ const ProfileImage = styled.img`
   height: 120px;
   border-radius: 50%;
   border: 2px solid rgba(255, 255, 255, 0.1);
-
-  @media (max-width: 768px) {
-    width: 100px;
-    height: 100px;
-  }
 `;
 
 const ProfileInfo = styled.div`
@@ -52,11 +38,6 @@ const Stats = styled.div`
   display: flex;
   gap: 24px;
   margin-top: 16px;
-
-  @media (max-width: 768px) {
-    justify-content: center;
-    gap: 16px;
-  }
 `;
 
 const StatItem = styled.div`

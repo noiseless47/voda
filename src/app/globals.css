@@ -62,11 +62,15 @@
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
   }
+}
 
-  html {
-    -webkit-tap-highlight-color: transparent;
+@layer base {
+  * {
+    @apply border-border;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
   }
-
   body {
     @apply bg-background text-foreground;
     color: rgb(var(--foreground-rgb));
@@ -80,24 +84,6 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     font-family: var(--font-primary);
-    overscroll-behavior: none;
-  }
-
-  /* Improve touch targets on mobile */
-  @media (max-width: 768px) {
-    button, a {
-      min-height: 44px;
-      min-width: 44px;
-    }
-  }
-}
-
-@layer base {
-  * {
-    @apply border-border;
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
   }
 }
 

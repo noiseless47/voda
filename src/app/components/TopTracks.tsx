@@ -89,27 +89,31 @@ const TrackList = styled.div`
   }
 `;
 
-const TrackGrid = styled.div`
-  display: grid;
-  gap: 12px;
-
-  @media (max-width: 768px) {
-    gap: 8px;
-  }
-`;
-
-const TrackItem = styled.div`
+const TrackItem = styled(motion.div)`
   display: flex;
   align-items: center;
-  gap: 16px;
-  padding: 12px;
+  padding: 16px;
+  padding-right: 64px;
+  border-radius: 12px;
+  color: white;
   background: rgba(255, 255, 255, 0.05);
-  border-radius: 8px;
-  transition: all 0.2s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+  min-height: 80px;
 
-  @media (max-width: 768px) {
-    padding: 8px;
-    gap: 12px;
+  &:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: scale(1.02);
+
+    ${PlayButton} {
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    ${TrackNumber} {
+      opacity: 0;
+    }
   }
 `;
 
@@ -123,31 +127,18 @@ const TrackImage = styled.img`
 
 const TrackInfo = styled.div`
   flex: 1;
-  min-width: 0;
-
-  h3 {
+  
+  h4 {
     font-size: 16px;
+    font-weight: 500;
+    color: #fff;
     margin: 0;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-
-    @media (max-width: 768px) {
-      font-size: 14px;
-    }
   }
 
   p {
     font-size: 14px;
     color: #b3b3b3;
     margin: 4px 0 0;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-
-    @media (max-width: 768px) {
-      font-size: 12px;
-    }
   }
 `;
 
@@ -212,7 +203,7 @@ export default function TopTracks({ tracks, timeRange }: TopTracksProps) {
               <TrackNumber>{index + 1}</TrackNumber>
               <TrackImage src={track.album.images[1]?.url} alt={track.name} />
               <TrackInfo>
-                <h3>{track.name}</h3>
+                <h4>{track.name}</h4>
                 <p>{track.artists[0]?.name}</p>
               </TrackInfo>
               <PlayButton 
