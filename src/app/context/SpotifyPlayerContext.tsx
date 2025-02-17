@@ -76,13 +76,8 @@ export function SpotifyPlayerProvider({
 
         // Check if we have all required scopes
         const token = spotify.getAccessToken();
-        const requiredScopes = ['streaming', 'user-read-playback-state', 'user-modify-playback-state'];
-        const decodedToken = JSON.parse(atob(token!.split('.')[1]));
-        const currentScopes = decodedToken.scope?.split(' ') || [];
-        
-        const missingScopes = requiredScopes.filter(scope => !currentScopes.includes(scope));
-        if (missingScopes.length > 0) {
-          console.error('Missing required scopes:', missingScopes);
+        if (!token) {
+          console.error('No token available');
           return;
         }
 
@@ -90,7 +85,7 @@ export function SpotifyPlayerProvider({
         const script = document.createElement('script');
         script.src = 'https://sdk.scdn.co/spotify-player.js';
         script.async = true;
-        scriptElement = script;  // Store reference to script
+        scriptElement = script;
 
         document.body.appendChild(script);
 
@@ -182,33 +177,20 @@ export function SpotifyPlayerProvider({
   }, [player, isReady]);
 
   useEffect(() => {
-    const checkPremium = async () => {
+    const checkToken = async () => {
       try {
-        const user = await spotify.getMe() as SpotifyUser;
-        setIsPremium(user.product === 'premium');
+        const token = spotify.getAccessToken();
+        if (token) {
+          await spotify.getMe(); // This will fail if token is expired
+        }
       } catch (error) {
-        console.error('Error checking premium status:', error);
+        console.error('Token validation failed:', error);
+        // Redirect to login or handle token refresh
+        window.location.href = '/';
       }
     };
 
-    checkPremium();
-  }, [spotify]);
-
-  const checkTokenExpiration = () => {
-    const token = spotify.getAccessToken();
-    if (token) {
-      const decodedToken = JSON.parse(atob(token.split('.')[1]));
-      const expirationTime = decodedToken.exp * 1000; // Convert to milliseconds
-      if (Date.now() >= expirationTime) {
-        console.error('Token expired');
-        // Handle token refresh or redirect to login
-      }
-    }
-  };
-
-  useEffect(() => {
-    checkTokenExpiration();
-    const interval = setInterval(checkTokenExpiration, 60000); // Check every minute
+    const interval = setInterval(checkToken, 60000); // Check every minute
     return () => clearInterval(interval);
   }, [spotify]);
 
