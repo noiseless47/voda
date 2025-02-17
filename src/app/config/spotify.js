@@ -2,16 +2,12 @@ export const authEndpoint = "https://accounts.spotify.com/authorize";
 export const clientId = process.env.NEXT_PUBLIC_SPOTIFY_CLIENT_ID; // Get this from Spotify Developer Dashboard
 export const redirectUri = process.env.NEXT_PUBLIC_REDIRECT_URI;
 export const scopes = [
-  'user-read-private',
-  'user-read-email',
-  'user-read-playback-state',
-  'user-modify-playback-state',
-  'streaming',
-  'user-read-currently-playing',
-  'user-read-recently-played',
-  'user-top-read',
-  'playlist-modify-public',
-  'playlist-modify-private'
+  "user-read-currently-playing",
+  "user-read-recently-played",
+  "user-read-playback-state",
+  "user-top-read",
+  "user-read-private",
+  "user-read-email",
 ];
 
 export const getTokenFromUrl = () => {

@@ -146,11 +146,8 @@ export default function RecentlyPlayed({ tracks }: RecentlyPlayedProps) {
   const [currentTrackId, setCurrentTrackId] = useState<string | null>(null);
 
   const handlePlay = async (track: SpotifyApi.TrackObjectFull) => {
-    console.log('Play attempt - Device ID:', deviceId);
-    console.log('Player ready:', isReady);
-    
     if (!deviceId) {
-      console.log('No device ID - opening in Spotify app');
+      // If no player is available, open in Spotify
       window.open(track.external_urls.spotify, '_blank');
       return;
     }
@@ -159,27 +156,21 @@ export default function RecentlyPlayed({ tracks }: RecentlyPlayedProps) {
       setIsPlaying(true);
       setCurrentTrackId(track.id);
 
-      const token = localStorage.getItem('spotify_token');
-      console.log('Token available:', !!token);
-
       const response = await fetch(`https://api.spotify.com/v1/me/player/play?device_id=${deviceId}`, {
         method: 'PUT',
         body: JSON.stringify({ uris: [track.uri] }),
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
+          'Authorization': `Bearer ${localStorage.getItem('spotify_token')}`,
         },
       });
 
-      console.log('Play response status:', response.status);
-
       if (!response.ok) {
-        const errorData = await response.json();
-        console.error('Play error:', errorData);
         throw new Error(`HTTP error! status: ${response.status}`);
       }
     } catch (error) {
       console.error('Playback error:', error);
+      // Fallback to opening in Spotify app
       window.open(track.external_urls.spotify, '_blank');
       setIsPlaying(false);
       setCurrentTrackId(null);

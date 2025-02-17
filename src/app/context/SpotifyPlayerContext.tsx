@@ -3,7 +3,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import SpotifyWebApi from 'spotify-web-api-js';
 import { SpotifyUser } from '../types/spotify';
-import { toast } from 'react-hot-toast';
 
 interface SpotifyPlayerContextType {
   player: Spotify.Player | null;
@@ -45,8 +44,8 @@ export function SpotifyPlayerProvider({
 }) {
   const [player, setPlayer] = useState<Spotify.Player | null>(null);
   const [deviceId, setDeviceId] = useState<string | null>(null);
-  const [isReady, setIsReady] = useState(false);
   const [isPremium, setIsPremium] = useState(false);
+  const [isReady, setIsReady] = useState(false);
   const [currentTrack, setCurrentTrack] = useState<{
     id: string;
     name: string;
@@ -58,106 +57,6 @@ export function SpotifyPlayerProvider({
   const [progress, setProgress] = useState(0);
   const [duration, setDuration] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
-
-  useEffect(() => {
-    let scriptElement: HTMLScriptElement | null = null;
-    
-    const initializePlayer = async () => {
-      try {
-        // Check if user has Premium
-        const user = await spotify.getMe();
-        const hasPremium = user.product === 'premium';
-        setIsPremium(hasPremium);
-        
-        if (!hasPremium) {
-          console.log('User does not have Premium');
-          return;
-        }
-
-        // Check if we have all required scopes
-        const token = spotify.getAccessToken();
-        if (!token) {
-          console.error('No token available');
-          return;
-        }
-
-        // Load Spotify Player SDK
-        const script = document.createElement('script');
-        script.src = 'https://sdk.scdn.co/spotify-player.js';
-        script.async = true;
-        scriptElement = script;
-
-        document.body.appendChild(script);
-
-        window.onSpotifyWebPlaybackSDKReady = () => {
-          console.log('SDK Ready, initializing player...');
-          const player = new window.Spotify.Player({
-            name: 'Pulse Web Player',
-            getOAuthToken: cb => {
-              const token = spotify.getAccessToken();
-              console.log('Getting token for player:', !!token);
-              if (token) cb(token);
-            },
-            volume: 0.5
-          });
-
-          // Add these error listeners
-          player.addListener('initialization_error', ({ message }) => {
-            console.error('Failed to initialize:', message);
-          });
-
-          player.addListener('authentication_error', ({ message }) => {
-            console.error('Failed to authenticate:', message);
-          });
-
-          player.addListener('account_error', ({ message }) => {
-            console.error('Failed to validate Spotify account:', message);
-          });
-
-          player.addListener('playback_error', ({ message }) => {
-            console.error('Failed to perform playback:', message);
-          });
-
-          player.addListener('ready', ({ device_id }) => {
-            console.log('Player ready, device ID:', device_id);
-            setDeviceId(device_id);
-            setIsReady(true);
-            setPlayer(player);
-            
-            // Set as active device
-            spotify.transferMyPlayback([device_id])
-              .then(() => console.log('Set as active device'))
-              .catch(err => console.error('Failed to set active device:', err));
-          });
-
-          player.addListener('not_ready', () => {
-            console.log('Player not ready');
-            setIsReady(false);
-            setDeviceId(null);
-          });
-
-          player.connect()
-            .then(success => {
-              console.log('Player connected:', success);
-              if (success) {
-                setPlayer(player);
-              }
-            });
-        };
-      } catch (error) {
-        console.error('Player initialization error:', error);
-      }
-    };
-
-    initializePlayer();
-
-    return () => {
-      if (scriptElement && document.body.contains(scriptElement)) {
-        document.body.removeChild(scriptElement);
-      }
-      player?.disconnect();
-    };
-  }, [spotify]);
 
   useEffect(() => {
     if (!player || !isReady) return;
@@ -177,22 +76,62 @@ export function SpotifyPlayerProvider({
   }, [player, isReady]);
 
   useEffect(() => {
-    const checkToken = async () => {
+    const checkPremium = async () => {
       try {
-        const token = spotify.getAccessToken();
-        if (token) {
-          await spotify.getMe(); // This will fail if token is expired
-        }
+        const user = await spotify.getMe() as SpotifyUser;
+        setIsPremium(user.product === 'premium');
       } catch (error) {
-        console.error('Token validation failed:', error);
-        // Redirect to login or handle token refresh
-        window.location.href = '/';
+        console.error('Error checking premium status:', error);
       }
     };
 
-    const interval = setInterval(checkToken, 60000); // Check every minute
-    return () => clearInterval(interval);
+    checkPremium();
   }, [spotify]);
+
+  useEffect(() => {
+    if (!isPremium) return;
+
+    const script = document.createElement('script');
+    script.src = 'https://sdk.scdn.co/spotify-player.js';
+    script.async = true;
+    document.body.appendChild(script);
+
+    window.onSpotifyWebPlaybackSDKReady = () => {
+      const player = new window.Spotify.Player({
+        name: 'Spotify Dashboard Player',
+        getOAuthToken: cb => { cb(spotify.getAccessToken()!); },
+        volume: 0.5
+      });
+
+      player.addListener('ready', ({ device_id }) => {
+        console.log('Ready with Device ID', device_id);
+        setDeviceId(device_id);
+        setIsReady(true);
+      });
+
+      player.addListener('not_ready', ({ device_id }) => {
+        console.log('Device ID has gone offline', device_id);
+        setDeviceId(null);
+        setIsReady(false);
+      });
+
+      player.addListener('player_state_changed', state => {
+        if (!state) return;
+        setCurrentTrack(state.track_window.current_track);
+        setProgress(state.position);
+        setDuration(state.duration);
+        setIsPlaying(!state.paused);
+      });
+
+      player.connect();
+      setPlayer(player);
+    };
+
+    return () => {
+      document.body.removeChild(script);
+      player?.disconnect();
+    };
+  }, [spotify, isPremium]);
 
   return (
     <SpotifyPlayerContext.Provider 
