@@ -146,28 +146,34 @@ export default function RecentlyPlayed({ tracks }: RecentlyPlayedProps) {
   const [currentTrackId, setCurrentTrackId] = useState<string | null>(null);
 
   const handlePlay = async (track: SpotifyApi.TrackObjectFull) => {
-    if (player && deviceId && isReady) {
-      try {
-        setIsPlaying(true);
-        setCurrentTrackId(track.id);
+    if (!deviceId) {
+      // If no player is available, open in Spotify
+      window.open(track.external_urls.spotify, '_blank');
+      return;
+    }
 
-        const response = await fetch(`https://api.spotify.com/v1/me/player/play?device_id=${deviceId}`, {
-          method: 'PUT',
-          body: JSON.stringify({ uris: [track.uri] }),
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('spotify_token')}`,
-          },
-        });
+    try {
+      setIsPlaying(true);
+      setCurrentTrackId(track.id);
 
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-      } catch (error) {
-        console.error('Error playing track:', error);
-        setIsPlaying(false);
-        setCurrentTrackId(null);
+      const response = await fetch(`https://api.spotify.com/v1/me/player/play?device_id=${deviceId}`, {
+        method: 'PUT',
+        body: JSON.stringify({ uris: [track.uri] }),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('spotify_token')}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
+    } catch (error) {
+      console.error('Playback error:', error);
+      // Fallback to opening in Spotify app
+      window.open(track.external_urls.spotify, '_blank');
+      setIsPlaying(false);
+      setCurrentTrackId(null);
     }
   };
 

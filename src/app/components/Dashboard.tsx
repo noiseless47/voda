@@ -20,6 +20,7 @@ import MoodPlaylist from './MoodPlaylist';
 import Layout from './Layout';
 import { SpotifyUser } from '../types/spotify';
 import { SpotifyPlayerProvider } from '../context/SpotifyPlayerContext';
+import { toast } from 'react-hot-toast';
 
 const DashboardContainer = styled.div`
   padding: 30px;
@@ -398,48 +399,69 @@ export default function Dashboard({ spotify }: DashboardProps) {
   }, [timeRange, spotify]);
 
   useEffect(() => {
-    // Load Spotify Web Playback SDK
-    const script = document.createElement("script");
-    script.src = "https://sdk.scdn.co/spotify-player.js";
-    script.async = true;
-
-    document.body.appendChild(script);
-
-    window.onSpotifyWebPlaybackSDKReady = () => {
-      const player = new window.Spotify.Player({
-        name: 'Spotify Dashboard Player',
-        getOAuthToken: cb => { 
-          const token = spotify.getAccessToken();
-          if (token) {
-            cb(token);
-          }
+    const initializePlayer = async () => {
+      try {
+        const user = await spotify.getMe() as SpotifyUser;
+        
+        if (user.product !== 'premium') {
+          toast.error('Spotify Premium is required for playback. Opening Spotify app instead.');
+          return;
         }
-      });
 
-      // Error handling
-      player.addListener('initialization_error', ({ message }) => {
-        console.error(message);
-      });
+        // Load the Spotify Web Playback SDK
+        const script = document.createElement('script');
+        script.src = 'https://sdk.scdn.co/spotify-player.js';
+        script.async = true;
 
-      player.addListener('authentication_error', ({ message }) => {
-        console.error(message);
-      });
+        script.onerror = () => {
+          toast.error('Failed to load Spotify player. Please try again or use the Spotify app.');
+        };
 
-      player.addListener('account_error', ({ message }) => {
-        console.error(message);
-      });
+        document.body.appendChild(script);
 
-      player.addListener('playback_error', ({ message }) => {
-        console.error(message);
-      });
+        window.onSpotifyWebPlaybackSDKReady = () => {
+          const player = new window.Spotify.Player({
+            name: 'Pulse Web Player',
+            getOAuthToken: cb => { 
+              const token = spotify.getAccessToken();
+              if (token) {
+                cb(token);
+              } else {
+                toast.error('Authentication error. Please sign in again.');
+              }
+            }
+          });
 
-      // Connect to the player
-      player.connect();
+          player.addListener('ready', ({ device_id }) => {
+            console.log('Player ready with device ID', device_id);
+            toast.success('Player connected successfully!');
+          });
+
+          player.addListener('not_ready', () => {
+            toast.error('Player disconnected. Trying to reconnect...');
+          });
+
+          player.addListener('initialization_error', ({ message }) => {
+            toast.error(`Player initialization failed: ${message}`);
+          });
+
+          player.addListener('authentication_error', () => {
+            toast.error('Authentication failed. Please sign in again.');
+          });
+
+          player.addListener('account_error', () => {
+            toast.error('Premium required for playback. Opening Spotify app instead.');
+          });
+
+          player.connect();
+        };
+      } catch (error) {
+        console.error('Player initialization error:', error);
+        toast.error('Failed to initialize player. Please try again.');
+      }
     };
 
-    return () => {
-      document.body.removeChild(script);
-    };
+    initializePlayer();
   }, [spotify]);
 
   const handleSignOut = () => {
