@@ -6,6 +6,7 @@ import { motion } from 'framer-motion';
 import { authEndpoint, clientId, redirectUri, scopes } from './config/spotify';
 import Dashboard from './components/Dashboard';
 import SpotifyWebApi from 'spotify-web-api-js';
+import { FaSpotify } from 'react-icons/fa';
 
 const spotify = new SpotifyWebApi();
 
@@ -54,19 +55,37 @@ const Subtitle = styled.p`
 `;
 
 const LoginButton = styled(motion.a)`
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   background: #1ed760;
   color: black;
   padding: 16px 32px;
   border-radius: 30px;
-  font-weight: 700;
+  font-weight: 600;
   text-decoration: none;
   font-size: 1.2rem;
   transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(30, 215, 96, 0.3);
+
+  span {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  svg {
+    font-size: 24px;
+  }
 
   &:hover {
-    transform: scale(1.05);
+    transform: translateY(-2px);
     background: #1fdf64;
+    box-shadow: 0 6px 16px rgba(30, 215, 96, 0.4);
+  }
+
+  &:active {
+    transform: translateY(0);
   }
   
   @media (max-width: 768px) {
@@ -136,16 +155,16 @@ export default function Home() {
   return (
     <Container>
       <Hero>
-        <Title>Spotify Dashboard</Title>
+        <Title>Pulse</Title>
         <Subtitle>
           Your personal music insights powered by AI
         </Subtitle>
         <LoginButton 
           href={loginUrl}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
         >
-          Sign in with Spotify
+          Sign in with <span><FaSpotify /> Spotify</span>
         </LoginButton>
       </Hero>
 

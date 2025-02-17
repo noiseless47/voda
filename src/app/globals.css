@@ -32,6 +32,8 @@
     --foreground-rgb: 255, 255, 255;
     --background-start-rgb: 30, 30, 30;
     --background-end-rgb: 18, 18, 18;
+    --font-primary: var(--font-dm-sans), -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    --font-secondary: var(--font-cabin), -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
   }
 
   .dark {
@@ -81,7 +83,7 @@
     font-feature-settings: "ss01" 1, "ss02" 1, "cv01" 1;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    font-family: 'Spotify Mix', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    font-family: var(--font-primary);
   }
 }
 
@@ -93,7 +95,8 @@
 
 h1, h2, h3, h4, h5, h6 {
   letter-spacing: -0.04em;
-  font-weight: 700;
+  font-family: var(--font-secondary);
+  font-weight: 600;
 }
 
 button, a {

@@ -3,70 +3,143 @@
 import styled from 'styled-components';
 import { authEndpoint, clientId, redirectUri, scopes } from '../config/spotify';
 import Image from 'next/image';
+import { FaSpotify } from 'react-icons/fa';
 
 const LoginContainer = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  height: 100vh;
-  background: linear-gradient(to bottom, #1e1e1e, #121212);
+  min-height: 100vh;
+  background: linear-gradient(
+    135deg,
+    #1e1e1e 0%,
+    #121212 50%,
+    #1a1a1a 100%
+  );
   color: white;
+  font-family: var(--font-primary);
+  position: relative;
+  overflow: hidden;
 `;
 
 const Logo = styled.div`
   margin-bottom: 48px;
   animation: fadeIn 1s ease-in;
+  position: relative;
 
-  @keyframes fadeIn {
-    from {
-      opacity: 0;
-      transform: translateY(-20px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
+  &::after {
+    content: '';
+    position: absolute;
+    width: 120%;
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.1),
+      transparent
+    );
+    bottom: -24px;
+    left: -10%;
   }
 `;
 
 const LoginButton = styled.a`
   background: #1ed760;
   color: black;
-  padding: 16px 48px;
+  padding: 16px 32px;
   border-radius: 500px;
-  font-weight: 700;
+  font-weight: 600;
   font-size: 16px;
   text-decoration: none;
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
+  font-family: var(--font-primary);
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 4px 12px rgba(30, 215, 96, 0.3);
+
+  span {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  svg {
+    font-size: 24px;
+  }
 
   &:hover {
-    transform: scale(1.04);
-    background: #1db954;
+    transform: translateY(-2px);
+    background: #1fdf64;
+    box-shadow: 0 6px 16px rgba(30, 215, 96, 0.4);
+  }
+
+  &:active {
+    transform: translateY(0);
   }
 `;
 
 const WelcomeText = styled.div`
   color: white;
-  margin-bottom: 32px;
+  margin-bottom: 48px;
+  text-align: center;
   animation: fadeIn 1s ease-in 0.3s backwards;
+  max-width: 800px;
+  padding: 0 24px;
 
   h1 {
-    font-size: 40px;
-    font-weight: 900;
-    margin-bottom: 16px;
+    font-family: var(--font-secondary);
+    font-size: 64px;
+    font-weight: 700;
+    margin-bottom: 24px;
     background: linear-gradient(to right, #1ed760, #fff);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
+    letter-spacing: -1px;
   }
 
   p {
-    font-size: 18px;
+    font-size: 20px;
     color: #b3b3b3;
+    line-height: 1.6;
     max-width: 600px;
     margin: 0 auto;
-    line-height: 1.6;
+  }
+`;
+
+const Features = styled.div`
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  margin-top: 48px;
+  max-width: 1200px;
+  padding: 0 24px;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
+`;
+
+const Feature = styled.div`
+  background: rgba(255, 255, 255, 0.05);
+  padding: 24px;
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+
+  h3 {
+    color: #1ed760;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  p {
+    color: #b3b3b3;
+    line-height: 1.5;
   }
 `;
 
@@ -114,22 +187,12 @@ const Content = styled.div`
 `;
 
 export default function Login() {
-  const scopes = [
-    'user-read-private',
-    'user-read-email',
-    'playlist-modify-public',
-    'playlist-modify-private',
-    'user-top-read',
-    'user-read-recently-played',
-    'user-read-currently-playing'
-  ].join(' ');
-
   const loginUrl = `https://accounts.spotify.com/authorize?client_id=${
     process.env.NEXT_PUBLIC_SPOTIFY_CLIENT_ID
   }&redirect_uri=${
     encodeURIComponent(process.env.NEXT_PUBLIC_REDIRECT_URI!)
   }&scope=${
-    encodeURIComponent(scopes)
+    encodeURIComponent(scopes.join(' '))
   }&response_type=token&show_dialog=true`;
 
   return (
@@ -138,25 +201,40 @@ export default function Login() {
       <Content>
         <Logo>
           <Image
-            src="/spotify-white.png" // Make sure to add this image to your public folder
-            alt="Spotify logo"
-            width={240}
-            height={72}
+            src="/pulse-logo.png"
+            alt="Pulse"
+            width={180}
+            height={60}
             priority
           />
         </Logo>
         
         <WelcomeText>
-          <h1>Welcome to Your Spotify Stats</h1>
+          <h1>Welcome to Pulse</h1>
           <p>
-            Discover your top tracks, artists, and listening habits. 
-            Get insights into your music taste and explore your Spotify journey.
+            Your personal AI-powered music intelligence hub. Discover insights about your 
+            listening habits, create smart playlists, and explore your musical journey.
           </p>
         </WelcomeText>
 
         <LoginButton href={loginUrl}>
-          Login with Spotify
+          Sign in with <span><FaSpotify /> Spotify</span>
         </LoginButton>
+
+        <Features>
+          <Feature>
+            <h3>🎯 AI-Powered Insights</h3>
+            <p>Get deep insights into your music taste with advanced AI analysis.</p>
+          </Feature>
+          <Feature>
+            <h3>🎭 Mood Playlists</h3>
+            <p>Generate custom playlists based on your current mood.</p>
+          </Feature>
+          <Feature>
+            <h3>📊 Rich Analytics</h3>
+            <p>Track your musical journey with beautiful visualizations.</p>
+          </Feature>
+        </Features>
       </Content>
     </LoginContainer>
   );
