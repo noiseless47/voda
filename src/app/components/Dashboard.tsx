@@ -17,6 +17,9 @@ import TasteEvolution from './TasteEvolution';
 import AIInsights from './AIInsights';
 import { motion } from 'framer-motion';
 import MoodPlaylist from './MoodPlaylist';
+import Layout from './Layout';
+import { SpotifyUser } from '../types/spotify';
+import { SpotifyPlayerProvider } from '../context/SpotifyPlayerContext';
 
 const DashboardContainer = styled.div`
   padding: 30px;
@@ -26,11 +29,25 @@ const DashboardContainer = styled.div`
   font-family: var(--font-circular), -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
 `;
 
-const Header = styled.header`
+const Container = styled.div`
+  padding: 24px;
+  
+  @media (max-width: 768px) {
+    padding: 16px;
+  }
+`;
+
+const Header = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 40px;
+  margin-bottom: 32px;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
 `;
 
 const SignOutButton = styled.button`
@@ -130,32 +147,31 @@ const TabList = styled.div`
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 `;
 
-const Tab = styled.button<{ $active: boolean }>`
-  padding: 12px 24px;
-  background: ${props => props.$active ? 'rgba(255, 255, 255, 0.1)' : 'transparent'};
-  border: none;
-  color: ${props => props.$active ? '#fff' : '#b3b3b3'};
-  font-size: 16px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  position: relative;
-  font-family: var(--font-circular), -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
-
-  &::after {
-    content: '';
-    position: absolute;
-    bottom: -1px;
-    left: 0;
-    right: 0;
-    height: 2px;
-    background: ${props => props.$active ? '#1ed760' : 'transparent'};
-    transition: all 0.3s ease;
+const TabsContainer = styled.div`
+  display: flex;
+  gap: 16px;
+  margin-bottom: 24px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+  
+  @media (max-width: 768px) {
+    width: 100%;
+    gap: 8px;
   }
+`;
 
-  &:hover {
-    color: white;
-    background: rgba(255, 255, 255, 0.05);
+const Tab = styled.button<{ $active: boolean }>`
+  padding: 8px 16px;
+  border-radius: 20px;
+  background: ${props => props.$active ? '#1ed760' : 'rgba(255, 255, 255, 0.1)'};
+  color: ${props => props.$active ? 'black' : 'white'};
+  border: none;
+  cursor: pointer;
+  white-space: nowrap;
+  
+  @media (max-width: 768px) {
+    padding: 6px 12px;
+    font-size: 14px;
   }
 `;
 
@@ -310,7 +326,7 @@ const RecentlyPlayedWrapper = styled.div`
 
 export default function Dashboard({ spotify }: DashboardProps) {
   const router = useRouter();
-  const [userData, setUserData] = useState<SpotifyApi.CurrentUsersProfileResponse | null>(null);
+  const [userData, setUserData] = useState<SpotifyUser | null>(null);
   const [topTracks, setTopTracks] = useState<SpotifyApi.TrackObjectFull[]>([]);
   const [topArtists, setTopArtists] = useState<SpotifyApi.ArtistObjectFull[]>([]);
   const [recentlyPlayed, setRecentlyPlayed] = useState<SpotifyApi.PlayHistoryObject[]>([]);
@@ -325,50 +341,41 @@ export default function Dashboard({ spotify }: DashboardProps) {
     const fetchData = async () => {
       setIsLoading(true);
       try {
-        const token = localStorage.getItem('spotify_token');
-        if (!token) {
-          throw new Error('No token found');
-        }
+        const token = spotify.getAccessToken();
+        if (token) {
+          spotify.setAccessToken(token);
 
-        // Create new instance
-        const spotifyApi = new SpotifyWebApi();
-        spotifyApi.setAccessToken(token);
+          const response = await spotify.getMe();
+          const userData = response as unknown as SpotifyUser;
+          setUserData(userData);
 
-        // Test the token
-        await spotifyApi.getMe();
-        
-        // If successful, update the spotify instance
-        spotify.setAccessToken(token);
+          const [tracks, artists, recentTracks] = await Promise.all([
+            spotify.getMyTopTracks(),
+            spotify.getMyTopArtists(),
+            spotify.getMyRecentlyPlayedTracks()
+          ]);
 
-        const [user, tracks, artists, recentTracks] = await Promise.all([
-          spotify.getMe(),
-          spotify.getMyTopTracks(),
-          spotify.getMyTopArtists(),
-          spotify.getMyRecentlyPlayedTracks()
-        ]);
+          console.log('User account type:', userData.product);
+          setTopTracks(tracks.items);
+          setTopArtists(artists.items);
+          setRecentlyPlayed(recentTracks.items);
 
-        setUserData(user);
-        setTopTracks(tracks.items);
-        setTopArtists(artists.items);
-        setRecentlyPlayed(recentTracks.items);
-
-        try {
-          const playlistData = await spotify.getUserPlaylists();
-          setPlaylists(playlistData?.items || []);
-        } catch (error) {
-          console.error('Error fetching playlists:', error);
-          setPlaylists([]); // Set empty array on error
+          try {
+            const playlistData = await spotify.getUserPlaylists();
+            setPlaylists(playlistData?.items || []);
+          } catch (error) {
+            console.error('Error fetching playlists:', error);
+            setPlaylists([]); // Set empty array on error
+          }
         }
       } catch (error) {
-        console.error('Token error:', error);
-        localStorage.removeItem('spotify_token');
-        window.location.href = '/';
+        console.error('Error fetching data:', error);
       }
       setIsLoading(false);
     };
 
     fetchData();
-  }, []);
+  }, [spotify]);
 
   useEffect(() => {
     const updateTimeRangeData = async () => {
@@ -389,6 +396,51 @@ export default function Dashboard({ spotify }: DashboardProps) {
       updateTimeRangeData();
     }
   }, [timeRange, spotify]);
+
+  useEffect(() => {
+    // Load Spotify Web Playback SDK
+    const script = document.createElement("script");
+    script.src = "https://sdk.scdn.co/spotify-player.js";
+    script.async = true;
+
+    document.body.appendChild(script);
+
+    window.onSpotifyWebPlaybackSDKReady = () => {
+      const player = new window.Spotify.Player({
+        name: 'Spotify Dashboard Player',
+        getOAuthToken: cb => { 
+          const token = spotify.getAccessToken();
+          if (token) {
+            cb(token);
+          }
+        }
+      });
+
+      // Error handling
+      player.addListener('initialization_error', ({ message }) => {
+        console.error(message);
+      });
+
+      player.addListener('authentication_error', ({ message }) => {
+        console.error(message);
+      });
+
+      player.addListener('account_error', ({ message }) => {
+        console.error(message);
+      });
+
+      player.addListener('playback_error', ({ message }) => {
+        console.error(message);
+      });
+
+      // Connect to the player
+      player.connect();
+    };
+
+    return () => {
+      document.body.removeChild(script);
+    };
+  }, [spotify]);
 
   const handleSignOut = () => {
     localStorage.removeItem('spotify_token');
@@ -537,6 +589,10 @@ export default function Dashboard({ spotify }: DashboardProps) {
     }
   };
 
+  const showTimeRangeForTab = (tab: TabType) => {
+    return tab === 'overview' || tab === 'ai-insights';
+  };
+
   if (isLoading) {
     return (
       <LoadingContainer>
@@ -547,64 +603,18 @@ export default function Dashboard({ spotify }: DashboardProps) {
   }
 
   return (
-    <DashboardContainer>
-      <Header>
-        <Title>Spotify Dashboard</Title>
-        <TimeRangeSelector>
-          <TimeRangeButton 
-            $active={timeRange === 'short_term'} 
-            onClick={() => setTimeRange('short_term')}
-          >
-            Last Month
-          </TimeRangeButton>
-          <TimeRangeButton 
-            $active={timeRange === 'medium_term'} 
-            onClick={() => setTimeRange('medium_term')}
-          >
-            Last 6 Months
-          </TimeRangeButton>
-          <TimeRangeButton 
-            $active={timeRange === 'long_term'} 
-            onClick={() => setTimeRange('long_term')}
-          >
-            All Time
-          </TimeRangeButton>
-        </TimeRangeSelector>
-        <SignOutButton onClick={handleSignOut}>Sign Out</SignOutButton>
-      </Header>
-
-      <TabContainer>
-        <TabList>
-          <Tab 
-            $active={activeTab === 'overview'} 
-            onClick={() => handleTabChange('overview')}
-          >
-            Overview
-          </Tab>
-          <Tab 
-            $active={activeTab === 'ai-insights'} 
-            onClick={() => handleTabChange('ai-insights')}
-          >
-            AI Insights
-          </Tab>
-          <Tab 
-            $active={activeTab === 'recommendations'} 
-            onClick={() => handleTabChange('recommendations')}
-          >
-            Smart Playlists
-          </Tab>
-          <Tab 
-            $active={activeTab === 'mood-playlist'} 
-            onClick={() => handleTabChange('mood-playlist')}
-          >
-            Mood Playlist
-          </Tab>
-        </TabList>
-      </TabContainer>
-
-      {renderTabContent()}
-      
-      <PlaylistSection playlists={playlists} />
-    </DashboardContainer>
+    <SpotifyPlayerProvider spotify={spotify}>
+      <Layout 
+        showTimeRange={showTimeRangeForTab(activeTab)}
+        timeRange={timeRange}
+        onTimeRangeChange={(range) => setTimeRange(range as 'short_term' | 'medium_term' | 'long_term')}
+        onSignOut={handleSignOut}
+        activeTab={activeTab}
+        onTabChange={(tab) => handleTabChange(tab as TabType)}
+      >
+        {renderTabContent()}
+        <PlaylistSection playlists={playlists} />
+      </Layout>
+    </SpotifyPlayerProvider>
   );
 } 

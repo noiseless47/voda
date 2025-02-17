@@ -83,4 +83,41 @@ export interface MoodData {
   acousticness: number;
 }
 
+export interface SpotifyUser {
+  birthdate?: string;
+  country: string;
+  display_name: string | null;
+  email: string;
+  external_urls: {
+    spotify: string;
+  };
+  followers: {
+    href: null;
+    total: number;
+  };
+  href: string;
+  id: string;
+  images: {
+    height: number | null;
+    url: string;
+    width: number | null;
+  }[];
+  product: 'free' | 'premium' | 'open';
+  type: 'user';
+  uri: string;
+}
+
+declare global {
+  interface Window {
+    Spotify: {
+      Player: new (options: {
+        name: string;
+        getOAuthToken: (cb: (token: string) => void) => void;
+        volume?: number;
+      }) => Spotify.Player;
+    };
+    onSpotifyWebPlaybackSDKReady: () => void;
+  }
+}
+
 export {}; 

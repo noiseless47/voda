@@ -1,35 +1,55 @@
 'use client';
 
+import React, { useState } from 'react';
 import styled from 'styled-components';
-import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { fontFamily, headingStyles } from '../styles/shared';
+import { useSpotifyPlayer } from '../context/SpotifyPlayerContext';
 
-const PlayButton = styled.div`
-  position: absolute;
-  right: 16px;
-  width: 36px;
-  height: 36px;
-  background: #1ed760;
+const Header = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+`;
+
+const TimeRange = styled.span`
+  font-size: 14px;
+  color: #b3b3b3;
+  padding: 4px 12px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.05);
+`;
+
+const PlayButton = styled.button`
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
+  background: #1ed760;
+  border: none;
   display: flex;
   align-items: center;
   justify-content: center;
+  cursor: pointer;
   opacity: 0;
   transform: translateX(10px);
-  transition: all 0.3s ease;
-  cursor: pointer;
-
-  &::before {
-    content: '▶';
-    font-size: 14px;
-    margin-left: 3px;
-    color: black;
-  }
+  transition: all 0.2s ease;
+  position: absolute;
+  right: 16px;
 
   &:hover {
     transform: scale(1.1);
     background: #1fdf64;
+  }
+
+  &:disabled {
+    background: #404040;
+    cursor: not-allowed;
+  }
+
+  svg {
+    fill: black;
+    width: 16px;
+    height: 16px;
   }
 `;
 
@@ -39,35 +59,6 @@ const TrackNumber = styled.div`
   color: #b3b3b3;
   width: 30px;
   transition: all 0.3s ease;
-`;
-
-const TrackItem = styled(motion.a)`
-  display: flex;
-  align-items: center;
-  padding: 16px;
-  padding-right: 64px;
-  border-radius: 12px;
-  text-decoration: none;
-  color: white;
-  background: rgba(255, 255, 255, 0.05);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  position: relative;
-  overflow: hidden;
-  min-height: 80px;
-
-  &:hover {
-    background: rgba(255, 255, 255, 0.1);
-    transform: scale(1.02);
-
-    ${PlayButton} {
-      opacity: 1;
-      transform: translateX(0);
-    }
-
-    ${TrackNumber} {
-      opacity: 0;
-    }
-  }
 `;
 
 const TrackList = styled.div`
@@ -98,6 +89,34 @@ const TrackList = styled.div`
   }
 `;
 
+const TrackItem = styled(motion.div)`
+  display: flex;
+  align-items: center;
+  padding: 16px;
+  padding-right: 64px;
+  border-radius: 12px;
+  color: white;
+  background: rgba(255, 255, 255, 0.05);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+  min-height: 80px;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: scale(1.02);
+
+    ${PlayButton} {
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    ${TrackNumber} {
+      opacity: 0;
+    }
+  }
+`;
+
 const TrackImage = styled.img`
   width: 48px;
   height: 48px;
@@ -115,27 +134,12 @@ const TrackInfo = styled.div`
     color: #fff;
     margin: 0;
   }
-  
+
   p {
     font-size: 14px;
     color: #b3b3b3;
     margin: 4px 0 0;
   }
-`;
-
-const Header = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 24px;
-`;
-
-const TimeRange = styled.span`
-  font-size: 14px;
-  color: #b3b3b3;
-  padding: 4px 12px;
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.05);
 `;
 
 interface TopTracksProps {
@@ -144,11 +148,41 @@ interface TopTracksProps {
 }
 
 export default function TopTracks({ tracks, timeRange }: TopTracksProps) {
+  const { player, deviceId, isReady } = useSpotifyPlayer();
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [currentTrackId, setCurrentTrackId] = useState<string | null>(null);
+
   const timeRangeText = {
     'short_term': 'Last Month',
     'medium_term': 'Last 6 Months',
     'long_term': 'All Time'
   }[timeRange];
+
+  const handlePlay = async (track: SpotifyApi.TrackObjectFull) => {
+    if (player && deviceId && isReady) {
+      try {
+        setIsPlaying(true);
+        setCurrentTrackId(track.id);
+
+        const response = await fetch(`https://api.spotify.com/v1/me/player/play?device_id=${deviceId}`, {
+          method: 'PUT',
+          body: JSON.stringify({ uris: [track.uri] }),
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('spotify_token')}`,
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+      } catch (error) {
+        console.error('Error playing track:', error);
+        setIsPlaying(false);
+        setCurrentTrackId(null);
+      }
+    }
+  };
 
   return (
     <div>
@@ -161,21 +195,32 @@ export default function TopTracks({ tracks, timeRange }: TopTracksProps) {
           {tracks.map((track, index) => (
             <TrackItem
               key={track.id}
-              href={track.external_urls.spotify}
-              target="_blank"
-              rel="noopener noreferrer"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
               transition={{ duration: 0.3, delay: index * 0.05 }}
             >
               <TrackNumber>{index + 1}</TrackNumber>
-              <PlayButton />
               <TrackImage src={track.album.images[1]?.url} alt={track.name} />
               <TrackInfo>
                 <h4>{track.name}</h4>
                 <p>{track.artists[0]?.name}</p>
               </TrackInfo>
+              <PlayButton 
+                onClick={() => handlePlay(track)}
+                disabled={isPlaying && currentTrackId === track.id}
+              >
+                {isPlaying && currentTrackId === track.id ? (
+                  <svg viewBox="0 0 24 24">
+                    <rect x="6" y="4" width="4" height="16"/>
+                    <rect x="14" y="4" width="4" height="16"/>
+                  </svg>
+                ) : (
+                  <svg viewBox="0 0 24 24">
+                    <path d="M8 5v14l11-7z"/>
+                  </svg>
+                )}
+              </PlayButton>
             </TrackItem>
           ))}
         </AnimatePresence>

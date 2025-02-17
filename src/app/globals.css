@@ -81,6 +81,7 @@
     font-feature-settings: "ss01" 1, "ss02" 1, "cv01" 1;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    font-family: 'Spotify Mix', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
   }
 }
 
@@ -99,4 +100,43 @@ button, a {
   letter-spacing: 0.1em;
   text-transform: uppercase;
   font-weight: 600;
+}
+
+@media (max-width: 768px) {
+  html {
+    font-size: 14px;
+  }
+
+  h1 {
+    font-size: 24px;
+  }
+
+  h2 {
+    font-size: 20px;
+  }
+
+  h3 {
+    font-size: 18px;
+  }
+}
+
+@font-face {
+  font-family: 'Spotify Mix';
+  src: url('/fonts/CircularSpotifyText-Book.woff2') format('woff2'),
+       url('/fonts/CircularSpotifyText-Book.woff') format('woff');
+  font-weight: 400;
+}
+
+@font-face {
+  font-family: 'Spotify Mix';
+  src: url('/fonts/CircularSpotifyText-Medium.woff2') format('woff2'),
+       url('/fonts/CircularSpotifyText-Medium.woff') format('woff');
+  font-weight: 500;
+}
+
+@font-face {
+  font-family: 'Spotify Mix';
+  src: url('/fonts/CircularSpotifyText-Bold.woff2') format('woff2'),
+       url('/fonts/CircularSpotifyText-Bold.woff') format('woff');
+  font-weight: 700;
 }

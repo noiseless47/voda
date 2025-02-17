@@ -1,21 +1,56 @@
 'use client';
 
+import React, { useState } from 'react';
 import styled from 'styled-components';
-import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useSpotifyPlayer } from '../context/SpotifyPlayerContext';
 
-const RecentContainer = styled.div`
-  background: rgba(255, 255, 255, 0.05);
-  padding: 24px;
-  border-radius: 16px;
-  backdrop-filter: blur(10px);
+const Container = styled.div`
+  padding: 0px;
   height: 100%;
   display: flex;
   flex-direction: column;
-  transition: transform 0.2s ease;
+`;
+
+const Header = styled.div`
+  margin-bottom: 24px;
+
+  h2 {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 700;
+  }
+`;
+
+const PlayButton = styled.button`
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #1ed760;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0;
+  transform: translateX(-10px);
+  transition: all 0.2s ease;
+  margin-right: 16px;
 
   &:hover {
-    transform: translateY(-2px);
+    transform: scale(1.1);
+    background: #1fdf64;
+  }
+
+  &:disabled {
+    background: #404040;
+    cursor: not-allowed;
+  }
+
+  svg {
+    width: 14px;
+    height: 14px;
+    fill: black;
   }
 `;
 
@@ -46,7 +81,7 @@ const TrackList = styled.div`
   }
 `;
 
-const TrackItem = styled(motion.a)`
+const TrackItem = styled(motion.div)`
   display: flex;
   align-items: center;
   padding: 12px;
@@ -59,68 +94,46 @@ const TrackItem = styled(motion.a)`
   &:hover {
     background: rgba(255, 255, 255, 0.1);
     transform: translateX(4px);
+
+    ${PlayButton} {
+      opacity: 1;
+      transform: translateX(0);
+    }
   }
 `;
 
 const TrackImage = styled.img`
-  width: 50px;
-  height: 50px;
+  width: 48px;
+  height: 48px;
   border-radius: 4px;
   margin-right: 16px;
 `;
 
 const TrackInfo = styled.div`
   flex: 1;
-  
+  min-width: 0;
+
   h4 {
-    margin: 0;
-    font-size: 16px;
-    font-weight: 500;
-  }
-  
-  p {
-    margin: 4px 0 0;
+    color: white;
     font-size: 14px;
-    color: #b3b3b3;
-  }
-`;
-
-const PlayedAt = styled.div`
-  font-size: 14px;
-  color: #b3b3b3;
-  margin-left: 16px;
-`;
-
-const ExpandButton = styled.button`
-  width: 100%;
-  padding: 12px;
-  margin-top: 12px;
-  background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
-  color: #1ed760;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-
-  &:hover {
-    background: rgba(30, 215, 96, 0.1);
-    border-color: #1ed760;
-  }
-`;
-
-const Header = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-  flex-shrink: 0;
-
-  h2 {
     margin: 0;
-    font-size: 24px;
-    font-weight: 700;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
+
+  p {
+    color: #b3b3b3;
+    font-size: 12px;
+    margin: 4px 0 0;
+  }
+`;
+
+const PlayedAt = styled.span`
+  color: #b3b3b3;
+  font-size: 14px;
+  min-width: 80px;
+  text-align: right;
 `;
 
 interface RecentlyPlayedProps {
@@ -128,6 +141,36 @@ interface RecentlyPlayedProps {
 }
 
 export default function RecentlyPlayed({ tracks }: RecentlyPlayedProps) {
+  const { player, deviceId, isReady } = useSpotifyPlayer();
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [currentTrackId, setCurrentTrackId] = useState<string | null>(null);
+
+  const handlePlay = async (track: SpotifyApi.TrackObjectFull) => {
+    if (player && deviceId && isReady) {
+      try {
+        setIsPlaying(true);
+        setCurrentTrackId(track.id);
+
+        const response = await fetch(`https://api.spotify.com/v1/me/player/play?device_id=${deviceId}`, {
+          method: 'PUT',
+          body: JSON.stringify({ uris: [track.uri] }),
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('spotify_token')}`,
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+      } catch (error) {
+        console.error('Error playing track:', error);
+        setIsPlaying(false);
+        setCurrentTrackId(null);
+      }
+    }
+  };
+
   const formatPlayedAt = (date: string) => {
     const playedAt = new Date(date);
     const now = new Date();
@@ -142,7 +185,7 @@ export default function RecentlyPlayed({ tracks }: RecentlyPlayedProps) {
   };
 
   return (
-    <RecentContainer>
+    <Container>
       <Header>
         <h2>Recently Played</h2>
       </Header>
@@ -151,27 +194,39 @@ export default function RecentlyPlayed({ tracks }: RecentlyPlayedProps) {
           {tracks.map((item, index) => (
             <TrackItem
               key={`${item.track.id}-${item.played_at}`}
-              href={item.track.external_urls.spotify}
-              target="_blank"
-              rel="noopener noreferrer"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
               transition={{ duration: 0.3, delay: index * 0.05 }}
             >
               <TrackImage 
-                src={(item.track as SpotifyApi.TrackObjectFull).album?.images[2]?.url} 
+                src={item.track.album?.images[2]?.url} 
                 alt={item.track.name} 
               />
               <TrackInfo>
                 <h4>{item.track.name}</h4>
                 <p>{item.track.artists[0]?.name}</p>
               </TrackInfo>
+              <PlayButton 
+                onClick={() => handlePlay(item.track)}
+                disabled={isPlaying && currentTrackId === item.track.id}
+              >
+                {isPlaying && currentTrackId === item.track.id ? (
+                  <svg viewBox="0 0 24 24">
+                    <rect x="6" y="4" width="4" height="16"/>
+                    <rect x="14" y="4" width="4" height="16"/>
+                  </svg>
+                ) : (
+                  <svg viewBox="0 0 24 24">
+                    <path d="M8 5v14l11-7z"/>
+                  </svg>
+                )}
+              </PlayButton>
               <PlayedAt>{formatPlayedAt(item.played_at)}</PlayedAt>
             </TrackItem>
           ))}
         </AnimatePresence>
       </TrackList>
-    </RecentContainer>
+    </Container>
   );
 } 

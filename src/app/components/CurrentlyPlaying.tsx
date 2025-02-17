@@ -34,7 +34,7 @@ interface CurrentlyPlayingProps {
 }
 
 export default function CurrentlyPlaying({ track }: CurrentlyPlayingProps) {
-  if (!track.item) return null;
+  if (!track.item || track.item.type !== 'track') return null;
 
   return (
     <Container>

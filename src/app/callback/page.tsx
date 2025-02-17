@@ -8,14 +8,23 @@ export default function Callback() {
   const router = useRouter();
 
   useEffect(() => {
-    const hash = getTokenFromUrl();
-    const token = hash.access_token;
-    
+    const token = getTokenFromUrl().access_token;
     if (token) {
       localStorage.setItem('spotify_token', token);
       router.push('/');
     }
   }, [router]);
 
-  return <div>Loading...</div>;
+  return (
+    <div style={{ 
+      height: '100vh', 
+      display: 'flex', 
+      alignItems: 'center', 
+      justifyContent: 'center',
+      background: '#121212',
+      color: '#1ed760'
+    }}>
+      Authenticating...
+    </div>
+  );
 } 

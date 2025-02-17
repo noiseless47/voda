@@ -1,6 +1,7 @@
 'use client';
 
 import styled from 'styled-components';
+import { SpotifyUser } from '../types/spotify';
 
 const ProfileContainer = styled.div`
   display: flex;
@@ -53,7 +54,7 @@ const StatItem = styled.div`
 `;
 
 interface UserProfileProps {
-  user: SpotifyApi.CurrentUsersProfileResponse;
+  user: SpotifyUser;
 }
 
 export default function UserProfile({ user }: UserProfileProps) {

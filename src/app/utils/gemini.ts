@@ -32,7 +32,7 @@ export async function generateMusicInsights(data: {
 
 export async function generatePlaylistDescription(tracks: SpotifyApi.TrackObjectFull[]) {
   const genres = [...new Set(tracks.flatMap(track => 
-    track.artists.flatMap(artist => artist.genres || [])
+    track.artists.flatMap(artist => (artist as unknown as SpotifyApi.ArtistObjectFull).genres || [])
   ))];
 
   const prompt = `Create an engaging playlist description for a mix of music with these characteristics:
@@ -53,4 +53,4 @@ export async function generatePlaylistDescription(tracks: SpotifyApi.TrackObject
     console.error('Error generating playlist description:', error);
     return 'Unable to generate playlist description at this time.';
   }
-} 
+}

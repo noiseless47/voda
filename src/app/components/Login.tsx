@@ -9,11 +9,9 @@ const LoginContainer = styled.div`
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 100vh;
-  background: linear-gradient(transparent, rgba(0, 0, 0, 0.5)),
-              linear-gradient(rgb(32, 87, 100), rgb(41, 65, 171));
-  padding: 20px;
-  text-align: center;
+  height: 100vh;
+  background: linear-gradient(to bottom, #1e1e1e, #121212);
+  color: white;
 `;
 
 const Logo = styled.div`
@@ -32,34 +30,20 @@ const Logo = styled.div`
   }
 `;
 
-const LoginButton = styled.button`
-  background-color: #1ed760;
-  color: #000;
-  border: none;
-  padding: 17px 48px;
+const LoginButton = styled.a`
+  background: #1ed760;
+  color: black;
+  padding: 16px 48px;
   border-radius: 500px;
-  font-size: 16px;
   font-weight: 700;
-  letter-spacing: 2px;
-  text-transform: uppercase;
+  font-size: 16px;
+  text-decoration: none;
+  transition: all 0.2s ease;
   cursor: pointer;
-  transition: all 0.3s ease;
-  animation: slideUp 1s ease-in-out;
 
   &:hover {
-    background-color: #1fdf64;
     transform: scale(1.04);
-  }
-
-  @keyframes slideUp {
-    from {
-      opacity: 0;
-      transform: translateY(20px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
+    background: #1db954;
   }
 `;
 
@@ -130,11 +114,23 @@ const Content = styled.div`
 `;
 
 export default function Login() {
-  const handleLogin = () => {
-    const scopesStr = encodeURIComponent(scopes.join(' '));
-    const url = `${authEndpoint}?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${scopesStr}&response_type=token&show_dialog=true`;
-    window.location.href = url;
-  };
+  const scopes = [
+    'user-read-private',
+    'user-read-email',
+    'playlist-modify-public',
+    'playlist-modify-private',
+    'user-top-read',
+    'user-read-recently-played',
+    'user-read-currently-playing'
+  ].join(' ');
+
+  const loginUrl = `https://accounts.spotify.com/authorize?client_id=${
+    process.env.NEXT_PUBLIC_SPOTIFY_CLIENT_ID
+  }&redirect_uri=${
+    encodeURIComponent(process.env.NEXT_PUBLIC_REDIRECT_URI!)
+  }&scope=${
+    encodeURIComponent(scopes)
+  }&response_type=token&show_dialog=true`;
 
   return (
     <LoginContainer>
@@ -158,7 +154,7 @@ export default function Login() {
           </p>
         </WelcomeText>
 
-        <LoginButton onClick={handleLogin}>
+        <LoginButton href={loginUrl}>
           Login with Spotify
         </LoginButton>
       </Content>

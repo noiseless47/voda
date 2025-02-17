@@ -35,7 +35,11 @@ const OptionsGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 16px;
-  margin-bottom: 32px;
+  
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
 `;
 
 const Option = styled.button<{ $selected: boolean }>`
@@ -118,6 +122,10 @@ const SettingsContainer = styled.div`
   padding: 20px;
   background: rgba(255, 255, 255, 0.05);
   border-radius: 12px;
+
+  @media (max-width: 768px) {
+    padding: 16px;
+  }
 `;
 
 const SettingRow = styled.div`
@@ -128,6 +136,12 @@ const SettingRow = styled.div`
 
   &:last-child {
     margin-bottom: 0;
+  }
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
   }
 `;
 
@@ -151,6 +165,10 @@ const Slider = styled.input`
     &:hover {
       transform: scale(1.1);
     }
+  }
+
+  @media (max-width: 768px) {
+    width: 100%;
   }
 `;
 
@@ -309,7 +327,7 @@ export default function AIPlaylistGenerator({
       console.log('Received recommendations:', recommendations.tracks.length);
       
       // Set as playlist
-      setPlaylist(recommendations.tracks as SpotifyApi.TrackObjectFull[]);
+      setPlaylist(recommendations.tracks as unknown as SpotifyApi.TrackObjectFull[]);
       console.log('Playlist updated successfully');
 
     } catch (error) {
@@ -478,7 +496,8 @@ const meetsParameters = (features: SpotifyApi.AudioFeaturesObject, params: any):
     const featureValue = features[featureKey as keyof SpotifyApi.AudioFeaturesObject];
     
     if (typeof featureValue !== 'number') continue;
-    if (key.startsWith('min') && featureValue < value) return false;
-    if (key.startsWith('max') && featureValue > value) return false;
+    if (key.startsWith('min') && featureValue < (value as number)) return false;
+    if (key.startsWith('max') && featureValue > (value as number)) return false;
   }
-  return true; 
+  return true;
+} 

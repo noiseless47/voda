@@ -133,6 +133,20 @@ const Genres = styled.p`
   color: #b3b3b3;
 `;
 
+const ArtistName = styled.h4`
+  color: white;
+  font-size: 16px;
+  margin: 0;
+  text-transform: none;
+`;
+
+const ArtistGenre = styled.p`
+  color: #b3b3b3;
+  font-size: 14px;
+  margin: 4px 0 0;
+  text-transform: none;
+`;
+
 interface TopArtistsProps {
   artists: SpotifyApi.ArtistObjectFull[];
   timeRange: string;
@@ -165,10 +179,14 @@ export default function TopArtists({ artists, timeRange }: TopArtistsProps) {
               transition={{ duration: 0.3, delay: index * 0.05 }}
             >
               <ArtistNumber>{index + 1}</ArtistNumber>
-              <ArtistImage src={artist.images[2]?.url} alt={artist.name} />
+              <ArtistImage src={artist.images[0]?.url} alt={artist.name} />
               <ArtistInfo>
-                <h4>{artist.name}</h4>
-                <Genres>{artist.genres?.slice(0, 3).join(' • ')}</Genres>
+                <ArtistName>{artist.name}</ArtistName>
+                {artist.genres[0] && (
+                  <ArtistGenre>
+                    {artist.genres[0].charAt(0).toUpperCase() + artist.genres[0].slice(1)}
+                  </ArtistGenre>
+                )}
               </ArtistInfo>
             </ArtistItem>
           ))}
