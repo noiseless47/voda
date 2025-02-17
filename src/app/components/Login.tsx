@@ -1,7 +1,6 @@
 'use client';
 
 import styled from 'styled-components';
-import { authEndpoint, clientId, redirectUri, scopes } from '../config/spotify';
 import Image from 'next/image';
 
 const LoginContainer = styled.div`
@@ -121,13 +120,17 @@ export default function Login() {
     'playlist-modify-private',
     'user-top-read',
     'user-read-recently-played',
-    'user-read-currently-playing'
+    'user-read-currently-playing',
+    'streaming',
+    'user-read-playback-state',
+    'user-modify-playback-state'
   ].join(' ');
 
+  // Move this to client-side
   const loginUrl = `https://accounts.spotify.com/authorize?client_id=${
     process.env.NEXT_PUBLIC_SPOTIFY_CLIENT_ID
   }&redirect_uri=${
-    encodeURIComponent(process.env.NEXT_PUBLIC_REDIRECT_URI!)
+    encodeURIComponent(process.env.NEXT_PUBLIC_REDIRECT_URI || '')
   }&scope=${
     encodeURIComponent(scopes)
   }&response_type=token&show_dialog=true`;
@@ -138,7 +141,7 @@ export default function Login() {
       <Content>
         <Logo>
           <Image
-            src="/spotify-white.png" // Make sure to add this image to your public folder
+            src="/spotify-white.png"
             alt="Spotify logo"
             width={240}
             height={72}
