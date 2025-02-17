@@ -60,6 +60,8 @@ export function SpotifyPlayerProvider({
   const [isPlaying, setIsPlaying] = useState(false);
 
   useEffect(() => {
+    let scriptElement: HTMLScriptElement | null = null;
+    
     const initializePlayer = async () => {
       try {
         // Check if user has Premium
@@ -72,10 +74,23 @@ export function SpotifyPlayerProvider({
           return;
         }
 
+        // Check if we have all required scopes
+        const token = spotify.getAccessToken();
+        const requiredScopes = ['streaming', 'user-read-playback-state', 'user-modify-playback-state'];
+        const decodedToken = JSON.parse(atob(token!.split('.')[1]));
+        const currentScopes = decodedToken.scope?.split(' ') || [];
+        
+        const missingScopes = requiredScopes.filter(scope => !currentScopes.includes(scope));
+        if (missingScopes.length > 0) {
+          console.error('Missing required scopes:', missingScopes);
+          return;
+        }
+
         // Load Spotify Player SDK
         const script = document.createElement('script');
         script.src = 'https://sdk.scdn.co/spotify-player.js';
         script.async = true;
+        scriptElement = script;  // Store reference to script
 
         document.body.appendChild(script);
 
@@ -91,10 +106,28 @@ export function SpotifyPlayerProvider({
             volume: 0.5
           });
 
+          // Add these error listeners
+          player.addListener('initialization_error', ({ message }) => {
+            console.error('Failed to initialize:', message);
+          });
+
+          player.addListener('authentication_error', ({ message }) => {
+            console.error('Failed to authenticate:', message);
+          });
+
+          player.addListener('account_error', ({ message }) => {
+            console.error('Failed to validate Spotify account:', message);
+          });
+
+          player.addListener('playback_error', ({ message }) => {
+            console.error('Failed to perform playback:', message);
+          });
+
           player.addListener('ready', ({ device_id }) => {
             console.log('Player ready, device ID:', device_id);
             setDeviceId(device_id);
             setIsReady(true);
+            setPlayer(player);
             
             // Set as active device
             spotify.transferMyPlayback([device_id])
@@ -116,17 +149,19 @@ export function SpotifyPlayerProvider({
               }
             });
         };
-
-        return () => {
-          player?.disconnect();
-          document.body.removeChild(script);
-        };
       } catch (error) {
         console.error('Player initialization error:', error);
       }
     };
 
     initializePlayer();
+
+    return () => {
+      if (scriptElement && document.body.contains(scriptElement)) {
+        document.body.removeChild(scriptElement);
+      }
+      player?.disconnect();
+    };
   }, [spotify]);
 
   useEffect(() => {
@@ -157,6 +192,24 @@ export function SpotifyPlayerProvider({
     };
 
     checkPremium();
+  }, [spotify]);
+
+  const checkTokenExpiration = () => {
+    const token = spotify.getAccessToken();
+    if (token) {
+      const decodedToken = JSON.parse(atob(token.split('.')[1]));
+      const expirationTime = decodedToken.exp * 1000; // Convert to milliseconds
+      if (Date.now() >= expirationTime) {
+        console.error('Token expired');
+        // Handle token refresh or redirect to login
+      }
+    }
+  };
+
+  useEffect(() => {
+    checkTokenExpiration();
+    const interval = setInterval(checkTokenExpiration, 60000); // Check every minute
+    return () => clearInterval(interval);
   }, [spotify]);
 
   return (
