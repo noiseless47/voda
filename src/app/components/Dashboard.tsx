@@ -402,9 +402,10 @@ export default function Dashboard({ spotify }: DashboardProps) {
     const initializePlayer = async () => {
       try {
         const user = await spotify.getMe() as SpotifyUser;
+        console.log('User product type:', user.product); // Debug log
         
         if (user.product !== 'premium') {
-          toast.error('Spotify Premium is required for playback. Opening Spotify app instead.');
+          toast.error('Spotify Premium is required for playback');
           return;
         }
 
@@ -414,50 +415,53 @@ export default function Dashboard({ spotify }: DashboardProps) {
         script.async = true;
 
         script.onerror = () => {
-          toast.error('Failed to load Spotify player. Please try again or use the Spotify app.');
+          console.error('Failed to load Spotify SDK script');
+          toast.error('Failed to load Spotify player');
         };
 
         document.body.appendChild(script);
 
         window.onSpotifyWebPlaybackSDKReady = () => {
+          console.log('Spotify SDK Ready'); // Debug log
           const player = new window.Spotify.Player({
             name: 'Pulse Web Player',
             getOAuthToken: cb => { 
               const token = spotify.getAccessToken();
+              console.log('Token available:', !!token); // Debug log
               if (token) {
                 cb(token);
               } else {
-                toast.error('Authentication error. Please sign in again.');
+                toast.error('Authentication error');
               }
-            }
+            },
+            volume: 0.5
           });
 
           player.addListener('ready', ({ device_id }) => {
-            console.log('Player ready with device ID', device_id);
-            toast.success('Player connected successfully!');
+            console.log('Player ready with device ID:', device_id);
+            toast.success('Player connected!');
+            // Try to make this the active device
+            spotify.transferMyPlayback([device_id])
+              .then(() => console.log('Transferred playback'))
+              .catch(err => console.error('Transfer error:', err));
           });
 
-          player.addListener('not_ready', () => {
-            toast.error('Player disconnected. Trying to reconnect...');
+          player.addListener('not_ready', ({ device_id }) => {
+            console.log('Device ID has gone offline:', device_id);
+            toast.error('Player disconnected');
           });
 
-          player.addListener('initialization_error', ({ message }) => {
-            toast.error(`Player initialization failed: ${message}`);
-          });
-
-          player.addListener('authentication_error', () => {
-            toast.error('Authentication failed. Please sign in again.');
-          });
-
-          player.addListener('account_error', () => {
-            toast.error('Premium required for playback. Opening Spotify app instead.');
-          });
-
-          player.connect();
+          player.connect()
+            .then(success => {
+              console.log('Player connected:', success);
+            })
+            .catch(err => {
+              console.error('Player connect error:', err);
+            });
         };
       } catch (error) {
         console.error('Player initialization error:', error);
-        toast.error('Failed to initialize player. Please try again.');
+        toast.error('Failed to initialize player');
       }
     };
 
