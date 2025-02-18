@@ -14,11 +14,11 @@ const cabin = Cabin({
 });
 
 export const metadata: Metadata = {
-  title: "Pulse | AI-Powered Music Insights",
+  title: "VØDA | AI-Powered Music Insights",
   description: "Your personal music intelligence hub. Discover insights about your listening habits, create smart playlists, and explore your Spotify journey with AI.",
   keywords: "spotify, music analytics, ai, playlists, music insights, music stats",
   openGraph: {
-    title: 'Pulse | AI-Powered Music Insights',
+    title: 'VØDA | AI-Powered Music Insights',
     description: 'Your personal music intelligence hub powered by AI',
     type: 'website',
     locale: 'en_US',
@@ -27,13 +27,13 @@ export const metadata: Metadata = {
         url: '/og-image.png', // You'll need to create this image
         width: 1200,
         height: 630,
-        alt: 'Pulse - Music Intelligence Hub',
+        alt: 'VØDA - Music Intelligence Hub',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Pulse | AI-Powered Music Insights',
+    title: 'VØDA | AI-Powered Music Insights',
     description: 'Your personal music intelligence hub powered by AI',
   },
   icons: {

@@ -201,8 +201,8 @@ export default function Login() {
       <Content>
         <Logo>
           <Image
-            src="/pulse-logo.png"
-            alt="Pulse"
+            src="/voda-logo.png"
+            alt="VØDA"
             width={180}
             height={60}
             priority
@@ -210,7 +210,7 @@ export default function Login() {
         </Logo>
         
         <WelcomeText>
-          <h1>Welcome to Pulse</h1>
+          <h1>Welcome to VØDA</h1>
           <p>
             Your personal AI-powered music intelligence hub. Discover insights about your 
             listening habits, create smart playlists, and explore your musical journey.

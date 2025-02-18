@@ -177,7 +177,7 @@ export default function Layout({
       <Header>
         <Logo>
           <Image src="/spotify-icon.png" alt="Spotify" width={30} height={30} />
-          Pulse
+          VØDA
         </Logo>
         <HeaderContent>
           <TabsContainer>

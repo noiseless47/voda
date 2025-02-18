@@ -421,7 +421,7 @@ export default function Dashboard({ spotify }: DashboardProps) {
 
         window.onSpotifyWebPlaybackSDKReady = () => {
           const player = new window.Spotify.Player({
-            name: 'Pulse Web Player',
+            name: 'VØDA Web Player',
             getOAuthToken: cb => { 
               const token = spotify.getAccessToken();
               if (token) {

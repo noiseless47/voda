@@ -125,6 +125,9 @@ const Header = styled.div`
 const TimeRange = styled.span`
   font-size: 14px;
   color: #b3b3b3;
+  padding: 4px 12px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.05);
 `;
 
 const Genres = styled.p`

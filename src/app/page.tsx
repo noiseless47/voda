@@ -155,7 +155,7 @@ export default function Home() {
   return (
     <Container>
       <Hero>
-        <Title>Pulse</Title>
+        <Title>VØDA</Title>
         <Subtitle>
           Your personal music insights powered by AI
         </Subtitle>
