@@ -6,6 +6,7 @@ const MODEL = 'llama3-70b-8192';
 // Initialize the Groq client properly
 const groq = new Groq({
   apiKey: process.env.NEXT_PUBLIC_GROQ_API_KEY || '',
+  dangerouslyAllowBrowser: true
 });
 
 export async function POST(request: Request) {
