@@ -1,12 +1,12 @@
-import Groq from 'groq';
+import Groq from 'groq-sdk';
 
-// Initialize the Groq API client
+// Using Llama 3 model
+const MODEL = 'llama3-70b-8192';
+
+// Initialize the Groq client properly
 const groq = new Groq({
   apiKey: process.env.NEXT_PUBLIC_GROQ_API_KEY || '',
 });
-
-// Using Llama 3 model, but can be changed as needed
-const MODEL = 'llama3-70b-8192';
 
 export async function POST(request: Request) {
   try {
@@ -64,8 +64,8 @@ export async function POST(request: Request) {
     
     const suggestions = text
       .split('\n')
-      .filter(line => line.includes('|'))
-      .map(line => line.trim());
+      .filter((line: string) => line.includes('|'))
+      .map((line: string) => line.trim());
 
     if (suggestions.length === 0) {
       throw new Error('No valid song suggestions received');

@@ -1,12 +1,12 @@
-import Groq from 'groq';
-
-// Initialize the Groq API client
-const groq = new Groq({
-  apiKey: process.env.NEXT_PUBLIC_GROQ_API_KEY || '',
-});
+import Groq from 'groq-sdk';
 
 // Using Llama 3 model
 const MODEL = 'llama3-70b-8192';
+
+// Initialize the Groq client properly
+const groq = new Groq({
+  apiKey: process.env.NEXT_PUBLIC_GROQ_API_KEY || '',
+});
 
 interface UserListeningData {
   topGenres: string[];
