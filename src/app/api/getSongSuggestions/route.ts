@@ -1,6 +1,12 @@
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import Groq from 'groq';
 
-const genAI = new GoogleGenerativeAI(process.env.NEXT_PUBLIC_GEMINI_API_KEY!);
+// Initialize the Groq API client
+const groq = new Groq({
+  apiKey: process.env.NEXT_PUBLIC_GROQ_API_KEY || '',
+});
+
+// Using Llama 3 model, but can be changed as needed
+const MODEL = 'llama3-70b-8192';
 
 export async function POST(request: Request) {
   try {
@@ -10,10 +16,8 @@ export async function POST(request: Request) {
     const userTopArtists = [...new Set(topTracks.map((track: SpotifyApi.TrackObjectFull) => track.artists[0].name))].slice(0, 5);
     const userTopGenres = [...new Set(topTracks.flatMap((track: any) => track.artists[0].genres || []))].slice(0, 5);
     const recentArtists = [...new Set(recentTracks.map((track: any) => track.track.artists[0].name))].slice(0, 5);
-
-    const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
     
-    const result = await model.generateContent(`
+    const prompt = `
       You are a music expert creating a personalized playlist. Let's analyze the user's taste:
       
       LISTENING PROFILE:
@@ -49,9 +53,14 @@ export async function POST(request: Request) {
       RESPONSE FORMAT:
       Song Name | Artist Name
       (one per line, exactly 20 lines)
-    `);
+    `;
     
-    const text = result.response.text();
+    const response = await groq.chat.completions.create({
+      messages: [{ role: 'user', content: prompt }],
+      model: MODEL,
+    });
+    
+    const text = response.choices[0]?.message?.content || '';
     
     const suggestions = text
       .split('\n')

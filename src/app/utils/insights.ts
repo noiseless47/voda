@@ -1,6 +1,12 @@
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import Groq from 'groq';
 
-const genAI = new GoogleGenerativeAI(process.env.NEXT_PUBLIC_GEMINI_API_KEY!);
+// Initialize the Groq API client
+const groq = new Groq({
+  apiKey: process.env.NEXT_PUBLIC_GROQ_API_KEY || '',
+});
+
+// Using Llama 3 model
+const MODEL = 'llama3-70b-8192';
 
 interface UserListeningData {
   topGenres: string[];
@@ -21,10 +27,12 @@ async function generateMusicInsights(userData: UserListeningData) {
     3. Music recommendations based on their taste`;
   
   try {
-    const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    return response.text();
+    const response = await groq.chat.completions.create({
+      messages: [{ role: 'user', content: prompt }],
+      model: MODEL,
+    });
+    
+    return response.choices[0]?.message?.content || 'Unable to generate insights at this time.';
   } catch (error) {
     console.error('Error generating insights:', error);
     return 'Unable to generate insights at this time.';

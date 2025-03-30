@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { motion, AnimatePresence } from 'framer-motion';
-import { generateMusicInsights } from '../utils/gemini';
+import { generateMusicInsights } from '../utils/groq';
 
 const InsightsContainer = styled.div`
   display: grid;

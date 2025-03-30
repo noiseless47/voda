@@ -207,28 +207,6 @@ export default function Layout({
             </Tab>
           </TabsContainer>
           <Controls>
-            {showTimeRange && onTimeRangeChange && (
-              <TimeRangeControls>
-                <TimeRangeButton 
-                  $active={timeRange === 'short_term'} 
-                  onClick={() => onTimeRangeChange('short_term')}
-                >
-                  Last Month
-                </TimeRangeButton>
-                <TimeRangeButton 
-                  $active={timeRange === 'medium_term'} 
-                  onClick={() => onTimeRangeChange('medium_term')}
-                >
-                  Last 6 Months
-                </TimeRangeButton>
-                <TimeRangeButton 
-                  $active={timeRange === 'long_term'} 
-                  onClick={() => onTimeRangeChange('long_term')}
-                >
-                  All Time
-                </TimeRangeButton>
-              </TimeRangeControls>
-            )}
             {onSignOut && (
               <SignOutButton onClick={onSignOut}>
                 Sign Out

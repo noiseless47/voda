@@ -21,6 +21,7 @@ import Layout from './Layout';
 import { SpotifyUser } from '../types/spotify';
 import { SpotifyPlayerProvider } from '../context/SpotifyPlayerContext';
 import { toast } from 'react-hot-toast';
+import TimeRangeButton from './TimeRangeButton';
 
 const DashboardContainer = styled.div`
   padding: 30px;
@@ -114,27 +115,11 @@ const Title = styled.h1`
   -webkit-text-fill-color: transparent;
 `;
 
-const TimeRangeSelector = styled.div`
+const TimeRangeContainer = styled.div`
   display: flex;
+  justify-content: center;
   gap: 10px;
-  margin: 0 20px;
-`;
-
-const TimeRangeButton = styled.button<{ $active: boolean }>`
-  background: ${props => props.$active ? 'rgba(255, 255, 255, 0.1)' : 'transparent'};
-  color: ${props => props.$active ? '#fff' : '#b3b3b3'};
-  border: none;
-  padding: 8px 16px;
-  border-radius: 20px;
-  font-size: 14px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  font-family: var(--font-circular), -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
-
-  &:hover {
-    background: rgba(255, 255, 255, 0.1);
-    color: #fff;
-  }
+  margin-bottom: 20px;
 `;
 
 const TabContainer = styled.div`
@@ -525,6 +510,12 @@ export default function Dashboard({ spotify }: DashboardProps) {
               </motion.div>
             </ProfileSection>
 
+            <TimeRangeContainer>
+              <TimeRangeButton $active={timeRange === 'short_term'} onClick={() => setTimeRange('short_term')}>Last Month</TimeRangeButton>
+              <TimeRangeButton $active={timeRange === 'medium_term'} onClick={() => setTimeRange('medium_term')}>Last 6 Months</TimeRangeButton>
+              <TimeRangeButton $active={timeRange === 'long_term'} onClick={() => setTimeRange('long_term')}>All Time</TimeRangeButton>
+            </TimeRangeContainer>
+
             <StatsGrid>
               <MainColumn>
                 <motion.div
@@ -567,6 +558,11 @@ export default function Dashboard({ spotify }: DashboardProps) {
       case 'ai-insights':
         return (
           <InsightsContainer>
+            <TimeRangeContainer>
+              <TimeRangeButton $active={timeRange === 'short_term'} onClick={() => setTimeRange('short_term')}>Last Month</TimeRangeButton>
+              <TimeRangeButton $active={timeRange === 'medium_term'} onClick={() => setTimeRange('medium_term')}>Last 6 Months</TimeRangeButton>
+              <TimeRangeButton $active={timeRange === 'long_term'} onClick={() => setTimeRange('long_term')}>All Time</TimeRangeButton>
+            </TimeRangeContainer>
             <AIInsights 
               topTracks={topTracks}
               topArtists={topArtists}

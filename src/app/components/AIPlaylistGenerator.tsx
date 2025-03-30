@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
 import { motion } from 'framer-motion';
-import { generatePlaylistDescription } from '../utils/gemini';
+import { generatePlaylistDescription } from '../utils/groq';
 import SpotifyWebApi from 'spotify-web-api-js';
 
 const Container = styled.div`
